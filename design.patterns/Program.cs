@@ -76,6 +76,33 @@ namespace design.patterns
         IEnumerable<T> Filter(IEnumerable<T> items, ISpecification<T> spec);
     }
 
+    public class AndSpecification<T> : ISpecification<T>
+    {
+        private ISpecification<T> first, second;
+
+        public AndSpecification(ISpecification<T> first, ISpecification<T> second)
+        {
+            if (first==null)
+            {
+                throw new ArgumentNullException(paramName: nameof(first));
+            }
+
+            if (second == null)
+            {
+                throw new ArgumentNullException(paramName: nameof(second));
+            }
+
+            this.first = first;
+            this.second = second;
+
+        }
+
+        public bool IsSatisfied(T t)
+        {
+            return first.IsSatisfied(t) && second.IsSatisfied(t);
+        }
+    }
+
     public class BetterFilter : IFilter<Product>
     {
         public IEnumerable<Product> Filter(IEnumerable<Product> items, ISpecification<Product> spec)
@@ -97,6 +124,20 @@ namespace design.patterns
         public bool IsSatisfied(Product t)
         {
             return t.Color == color;
+        }
+    }
+
+    public class SizeSpecification : ISpecification<Product>
+    {
+        private Size size;
+        public SizeSpecification(Size size)
+        {
+            this.size = size;
+        }
+
+        public bool IsSatisfied(Product t)
+        {
+            return t.Size == size;
         }
     }
 
@@ -125,7 +166,25 @@ namespace design.patterns
                 WriteLine($" - {p.Name} is green");
             }
 
-            ReadKey();
+            WriteLine("Large products(new):");
+
+            foreach (var p in bf.Filter(products, new SizeSpecification(Size.Large)))
+            {
+                WriteLine($" - {p.Name} is Large");
+            }
+
+            WriteLine("Large and blue specification:");
+
+            foreach (var p in bf.Filter(
+                products,
+                new AndSpecification<Product>(
+                    new ColorSpecification(Color.Blue),
+                    new SizeSpecification(Size.Large)
+                )))
+            {
+                WriteLine($" - {p.Name} is Large and Blue");
+            }
+                ReadKey();
 
         }
     }
