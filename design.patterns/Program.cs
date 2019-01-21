@@ -66,6 +66,40 @@ namespace design.patterns
 
     }
 
+    public interface ISpecification<T>
+    {
+        bool IsSatisfied(T t);
+    }
+
+    public interface IFilter<T>
+    {
+        IEnumerable<T> Filter(IEnumerable<T> items, ISpecification<T> spec);
+    }
+
+    public class BetterFilter : IFilter<Product>
+    {
+        public IEnumerable<Product> Filter(IEnumerable<Product> items, ISpecification<Product> spec)
+        {
+            foreach (var i in items)
+                if (spec.IsSatisfied(i))
+                    yield return i;
+        }
+    }
+
+    public class ColorSpecification : ISpecification<Product>
+    {
+        private Color color;
+        public ColorSpecification(Color color)
+        {
+            this.color = color;
+        }
+
+        public bool IsSatisfied(Product t)
+        {
+            return t.Color == color;
+        }
+    }
+
     public class Program
     {
         static void Main(string[] args)
@@ -79,6 +113,14 @@ namespace design.patterns
             WriteLine("Green products (old):");
 
             foreach (var p in pf.FilterByColor(products, Color.Green))
+            {
+                WriteLine($" - {p.Name} is green");
+            }
+
+            var bf = new BetterFilter();
+            WriteLine("Green products(new):");
+
+            foreach (var p in bf.Filter(products, new ColorSpecification(Color.Green)))
             {
                 WriteLine($" - {p.Name} is green");
             }
